@@ -1,0 +1,12 @@
+{
+  "_note": "9 scaffold placeholders. MODULE_PATH is replaced via find/replace on go.mod and *.go imports by scaffold_setup — not as __TOKEN__ in source files.",
+  "__PROJECT_NAME__":  "MyApp",
+  "__PROJECT_LOWER__": "myapp",
+  "__MODULE_PATH__":   "git.trovefin.com/poc/ctrlc-service-go",
+  "__DB_NAME__":       "myapp_db",
+  "__DB_HOST__":       "localhost",
+  "__DB_PORT__":       "5432",
+  "__API_PORT__":      "8080",
+  "__JWT_SECRET__":    "change-me-in-production",
+  "__ENABLE_REDIS__":  "false"
+}
