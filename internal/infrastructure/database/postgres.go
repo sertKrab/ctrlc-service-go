@@ -5,10 +5,10 @@ import (
 	"log"
 	"time"
 
+	"git.trovefin.com/poc/ctrlc-service-go/internal/config"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-	"git.trovefin.com/poc/ctrlc-service-go/internal/config"
 )
 
 func NewPostgresDB(cfg *config.Config) (*gorm.DB, error) {
@@ -31,9 +31,9 @@ func NewPostgresDB(cfg *config.Config) (*gorm.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	sqlDB.SetMaxOpenConns(25)
-	sqlDB.SetMaxIdleConns(10)
-	sqlDB.SetConnMaxLifetime(5 * time.Minute)
+	sqlDB.SetMaxOpenConns(cfg.DBMaxOpenConns)
+	sqlDB.SetMaxIdleConns(cfg.DBMaxIdleConns)
+	sqlDB.SetConnMaxLifetime(time.Duration(cfg.DBConnLifetimeMinutes) * time.Minute)
 
 	if err := sqlDB.Ping(); err != nil {
 		return nil, fmt.Errorf("database ping: %w", err)

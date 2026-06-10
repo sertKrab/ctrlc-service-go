@@ -32,6 +32,12 @@ type Config struct {
 	CookieDomain   string `mapstructure:"COOKIE_DOMAIN"`
 	CookieSameSite string `mapstructure:"COOKIE_SAME_SITE"`
 
+	CORSOrigins string `mapstructure:"CORS_ORIGINS"`
+
+	DBMaxOpenConns        int `mapstructure:"DB_MAX_OPEN_CONNS"`
+	DBMaxIdleConns        int `mapstructure:"DB_MAX_IDLE_CONNS"`
+	DBConnLifetimeMinutes int `mapstructure:"DB_CONN_LIFETIME_MINUTES"`
+
 	DefaultLocale string `mapstructure:"DEFAULT_LOCALE"`
 }
 
@@ -51,6 +57,10 @@ func Load() (*Config, error) {
 	viper.SetDefault("COOKIE_SECURE", false)
 	viper.SetDefault("COOKIE_DOMAIN", "localhost")
 	viper.SetDefault("COOKIE_SAME_SITE", "Lax")
+	viper.SetDefault("CORS_ORIGINS", "http://localhost:3000")
+	viper.SetDefault("DB_MAX_OPEN_CONNS", 25)
+	viper.SetDefault("DB_MAX_IDLE_CONNS", 10)
+	viper.SetDefault("DB_CONN_LIFETIME_MINUTES", 5)
 	viper.SetDefault("DEFAULT_LOCALE", "th")
 
 	var cfg Config
