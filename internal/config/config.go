@@ -39,6 +39,8 @@ type Config struct {
 	DBConnLifetimeMinutes int `mapstructure:"DB_CONN_LIFETIME_MINUTES"`
 
 	DefaultLocale string `mapstructure:"DEFAULT_LOCALE"`
+
+	LogLevel string `mapstructure:"LOG_LEVEL"`
 }
 
 func Load() (*Config, error) {
@@ -62,6 +64,7 @@ func Load() (*Config, error) {
 	viper.SetDefault("DB_MAX_IDLE_CONNS", 10)
 	viper.SetDefault("DB_CONN_LIFETIME_MINUTES", 5)
 	viper.SetDefault("DEFAULT_LOCALE", "th")
+	viper.SetDefault("LOG_LEVEL", "info")
 
 	var cfg Config
 	if err := viper.Unmarshal(&cfg); err != nil {

@@ -2,6 +2,8 @@ package main
 
 import (
 	"log"
+	"log/slog"
+	"os"
 
 	"github.com/joho/godotenv"
 	authusecase "git.trovefin.com/poc/ctrlc-service-go/internal/application/usecase/auth"
@@ -10,20 +12,26 @@ import (
 	"git.trovefin.com/poc/ctrlc-service-go/internal/infrastructure/cache"
 	"git.trovefin.com/poc/ctrlc-service-go/internal/infrastructure/database"
 	"git.trovefin.com/poc/ctrlc-service-go/internal/infrastructure/errcache"
+	"git.trovefin.com/poc/ctrlc-service-go/internal/infrastructure/logging"
 	"git.trovefin.com/poc/ctrlc-service-go/internal/repository"
 )
 
 func main() {
 	_ = godotenv.Load()
 
+	// Config load itself isn't logged through slog yet (LOG_LEVEL comes
+	// from cfg), so keep stdlib log for this one fatal path only.
 	cfg, err := config.Load()
 	if err != nil {
 		log.Fatalf("[Config] %v", err)
 	}
 
+	logging.Init(cfg.LogLevel)
+
 	db, err := database.NewPostgresDB(cfg)
 	if err != nil {
-		log.Fatalf("[DB] %v", err)
+		slog.Error("[DB] connect failed", "error", err)
+		os.Exit(1)
 	}
 
 	_ = cache.NewCache(cfg)
@@ -50,8 +58,9 @@ func main() {
 	authHandler := delivery.NewAuthHandler(loginUC, refreshUC, logoutUC, getMeUC, cfg)
 	r := delivery.SetupRouter(cfg, authHandler, auditRepo)
 
-	log.Printf("[API] starting on :%s", cfg.AppPort)
+	slog.Info("[API] starting", "port", cfg.AppPort)
 	if err := r.Run(":" + cfg.AppPort); err != nil {
-		log.Fatalf("[API] %v", err)
+		slog.Error("[API] server stopped", "error", err)
+		os.Exit(1)
 	}
 }
