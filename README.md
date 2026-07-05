@@ -23,6 +23,30 @@ make run           # start API on :__API_PORT__
 { "success": true, "data": {}, "error": null, "timestamp": 1700000000000 }
 ```
 
+## Backend test response capture
+Generated backend HTTP tests should capture the primary asserted response with
+the shared helper:
+
+```go
+import "git.trovefin.com/poc/ctrlc-service-go/internal/testutil"
+
+func TestAuthHandler_AUTH_TC_001_LoginSuccess(t *testing.T) {
+    w := httptest.NewRecorder()
+    router.ServeHTTP(w, req)
+
+    testutil.RecordBEAPIResponse(t, "AUTH_TC_001", w)
+
+    if w.Code != http.StatusOK {
+        t.Fatalf("expected 200, got %d: %s", w.Code, w.Body.String())
+    }
+}
+```
+
+The helper writes `.ctrlc/e2e/api-responses/be_AUTH_TC_001.json` using the same
+`{"status": <int>, "body": <json-or-text>}` shape as frontend captures, and
+redacts sensitive fields such as tokens, cookies, OTPs, PINs, passwords, and
+secrets.
+
 ## Auth endpoints
 | Method | Path | Auth |
 |--------|------|------|
