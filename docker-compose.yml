@@ -31,8 +31,6 @@ services:
     image: redis:7-alpine
     ports:
       - "6379:6379"
-    profiles:
-      - redis
 
   api:
     build: .
@@ -40,9 +38,16 @@ services:
       - "__API_PORT__:__API_PORT__"
     env_file:
       - .env
+    environment:
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_started
     restart: unless-stopped
 
 volumes:

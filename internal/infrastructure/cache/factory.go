@@ -1,21 +1,18 @@
 package cache
 
 import (
-	"log"
+	"fmt"
 
 	"git.trovefin.com/poc/ctrlc-service-go/internal/config"
 )
 
-func NewCache(cfg *config.Config) Cache {
+func NewCache(cfg *config.Config) (Cache, error) {
 	if !cfg.EnableRedis {
-		log.Println("[Cache] Redis disabled — using noop cache")
-		return &NoopCache{}
+		return nil, fmt.Errorf("redis is required for durable runtime state; set ENABLE_REDIS=true")
 	}
 	client, err := newRedisClient(cfg)
 	if err != nil {
-		log.Printf("[Cache] Redis connect failed, falling back to noop: %v", err)
-		return &NoopCache{}
+		return nil, err
 	}
-	log.Println("[Cache] Redis connected")
-	return &RedisCache{client: client}
+	return &RedisCache{client: client}, nil
 }

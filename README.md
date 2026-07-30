@@ -55,10 +55,9 @@ secrets.
 | POST | /api/v1/auth/logout | Bearer |
 | GET  | /api/v1/auth/me | Bearer |
 
-## Redis (optional)
+## Redis
 ```bash
-# .env: ENABLE_REDIS=true
-make docker-up-redis
+docker compose up -d redis
 ```
 
 ## Scaffold placeholders

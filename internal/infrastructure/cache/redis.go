@@ -5,13 +5,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/redis/go-redis/v9"
 	"git.trovefin.com/poc/ctrlc-service-go/internal/config"
+	"github.com/redis/go-redis/v9"
 )
 
 type RedisCache struct {
 	client *redis.Client
 }
+
+func (r *RedisCache) Durable() bool { return true }
 
 func newRedisClient(cfg *config.Config) (*redis.Client, error) {
 	rdb := redis.NewClient(&redis.Options{

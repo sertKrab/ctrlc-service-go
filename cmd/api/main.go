@@ -5,7 +5,6 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/joho/godotenv"
 	authusecase "git.trovefin.com/poc/ctrlc-service-go/internal/application/usecase/auth"
 	"git.trovefin.com/poc/ctrlc-service-go/internal/config"
 	"git.trovefin.com/poc/ctrlc-service-go/internal/delivery"
@@ -14,6 +13,7 @@ import (
 	"git.trovefin.com/poc/ctrlc-service-go/internal/infrastructure/errcache"
 	"git.trovefin.com/poc/ctrlc-service-go/internal/infrastructure/logging"
 	"git.trovefin.com/poc/ctrlc-service-go/internal/repository"
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -34,13 +34,18 @@ func main() {
 		os.Exit(1)
 	}
 
-	_ = cache.NewCache(cfg)
+	cacheInstance, err := cache.NewCache(cfg)
+	if err != nil {
+		slog.Error("[Cache] durable cache unavailable", "error", err)
+		os.Exit(1)
+	}
+	slog.Info("[Cache] ready", "durable", cacheInstance.Durable())
 
 	// Repositories
-	userRepo    := repository.NewUserRepo(db)
+	userRepo := repository.NewUserRepo(db)
 	sessionRepo := repository.NewRefreshSessionRepo(db)
-	auditRepo   := repository.NewAuditRepo(db)
-	errmsgRepo  := repository.NewErrMsgRepo(db)
+	auditRepo := repository.NewAuditRepo(db)
+	errmsgRepo := repository.NewErrMsgRepo(db)
 
 	// Error cache
 	resolver, err := errcache.New(errmsgRepo, cfg.DefaultLocale)
@@ -49,10 +54,10 @@ func main() {
 	}
 
 	// Usecases
-	loginUC   := authusecase.NewLoginUseCase(userRepo, sessionRepo, auditRepo, cfg, resolver)
+	loginUC := authusecase.NewLoginUseCase(userRepo, sessionRepo, auditRepo, cfg, resolver)
 	refreshUC := authusecase.NewRefreshUseCase(sessionRepo, userRepo, cfg, resolver)
-	logoutUC  := authusecase.NewLogoutUseCase(sessionRepo, auditRepo, resolver)
-	getMeUC   := authusecase.NewGetMeUseCase(userRepo, resolver)
+	logoutUC := authusecase.NewLogoutUseCase(sessionRepo, auditRepo, resolver)
+	getMeUC := authusecase.NewGetMeUseCase(userRepo, resolver)
 
 	// Handlers + router
 	authHandler := delivery.NewAuthHandler(loginUC, refreshUC, logoutUC, getMeUC, cfg)
