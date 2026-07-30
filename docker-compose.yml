@@ -1,5 +1,15 @@
 version: "3.9"
 
+# Compose derives its project name from the directory holding this file, which is
+# always "backend" for a generated app — so every generated project shared one
+# namespace: identical container names (backend-api-1, backend-postgres-1) and,
+# worse, one shared `backend_postgres_data` volume. POSTGRES_USER/PASSWORD only
+# apply when a data directory is first initialized, so the second project to run
+# inherited the first project's superuser and failed with
+# `pq: password authentication failed`. Naming the project per generated app
+# keeps containers and volumes isolated and lets two apps run side by side.
+name: __PROJECT_LOWER__
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -36,4 +46,8 @@ services:
     restart: unless-stopped
 
 volumes:
+  # Explicitly named as well as project-scoped: a stale volume is the failure
+  # mode that is hardest to spot, so the name should say which app owns it even
+  # when read straight from `docker volume ls`.
   postgres_data:
+    name: __PROJECT_LOWER__-pgdata

@@ -66,6 +66,32 @@ func Load() (*Config, error) {
 	viper.SetDefault("DEFAULT_LOCALE", "th")
 	viper.SetDefault("LOG_LEVEL", "info")
 
+	// viper.AutomaticEnv() only affects viper.Get(); it does NOT make
+	// viper.Unmarshal() see an environment variable whose key viper has never
+	// been told about. Every key above is known because SetDefault registers it,
+	// but the secrets and DB identity below have no sensible default — so
+	// without an explicit BindEnv they unmarshal as "" even when the process
+	// environment clearly has them.
+	//
+	// That is invisible while a .env file is present (viper picks the keys up
+	// from it), and only bites where there is none: the runtime Docker stage
+	// copies just the binaries, migrations and entrypoint, so a containerized
+	// app gets its whole configuration from `env_file`/`environment`. The
+	// symptom was `[Migrate] config: JWT_SECRET must be set` in an endless
+	// entrypoint retry loop, with `docker inspect` showing JWT_SECRET plainly
+	// set on the container.
+	for _, key := range []string{
+		"DB_NAME",
+		"DB_USER",
+		"DB_PASSWORD",
+		"JWT_SECRET",
+		"REDIS_PASSWORD",
+	} {
+		if err := viper.BindEnv(key); err != nil {
+			return nil, fmt.Errorf("config bind env %s: %w", key, err)
+		}
+	}
+
 	var cfg Config
 	if err := viper.Unmarshal(&cfg); err != nil {
 		return nil, fmt.Errorf("config unmarshal: %w", err)
